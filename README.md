@@ -18,6 +18,16 @@ Compile with the following command:
 gcc -L. -lgmp -lpbc -lsodium test.c signature.c zkp.c keygen.c report_trace.c -o test & ./test
 ```
 
+## Benchmark
+
+The following result is tested on Apple Silicon M1, with RING_SIZE = 100, on curve of 224-bit prime characteristic and embedding degree 6.
+
+signing time: 1.401 s
+
+signature verification time: 2.433 s
+
+report & trace time: 0.444 s
+
 ## Other Stuff
 
 See https://github.com/izy66/ring.
