@@ -1,0 +1,17 @@
+{
+  "files.associations": {
+    "*.sage": "python",
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "vector": "c",
+    "signature.h": "c",
+    "zkp.h": "c",
+    "ring.h": "c",
+    "pbc.h": "c",
+    "stdio.h": "c",
+    "sodium.h": "c",
+    "version.h": "c",
+    "crypto_hash_sha512.h": "c"
+  }
+}
