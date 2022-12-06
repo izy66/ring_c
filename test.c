@@ -55,6 +55,7 @@ int main() {
   assert(!element_cmp(signature->signer_PID, ring[my_index].public_id));
   assert(trace_verify(signature));
   
+  Signature_clear(signature);
   for (int i = 0; i < RING_SIZE; ++i) {
     element_clear(ring[i].public_id);
     element_clear(ring[i].public_key);
