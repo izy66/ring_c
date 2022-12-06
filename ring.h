@@ -40,23 +40,6 @@ typedef struct {
 void Sign_Cipher_init(Sign_Cipher *cipher);
 void Sign_Cipher_clear(Sign_Cipher *cipher);
 
-// encrypt/decrypt sign_key with standard ElGamal
-//  sign_key is an element of G1
-
-// void sign_key_encrypt(Sign_Cipher *cipher, element_t public_key, elemenet_t sign_key) {
-//   element_t r;
-//   element_init_Zr(r);
-//   element_random(r);
-//   element_pow_zn(cipher->c1, pp->g, r);
-//   element_pow_zn(cipher->c2, public_key, r);
-//   element_mul(cipher->c2, cipher->c2, sign_key);
-// }
-
-// void sign_key_decrypt(element_t sign_key, Sign_Cipher *cipher, element_t secret_key) {
-//   element_pow_zn(sign_key, cipher->c1, secret_key);
-//   element_div(sign_key, cipher->c2, sign_key);
-// }
-
 typedef struct {
   element_t c1, c2, c3;
 } PID_Cipher;

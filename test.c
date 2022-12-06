@@ -1,9 +1,6 @@
 #include "ring.h"
 #include "time.h"
 
-// init group generators g, h, t for G1, G2, Gt
-//  where t = e(g, h)
-
 int main() {
   // FILE *f = freopen("out", "w", stdout);
 
