@@ -11,15 +11,9 @@
 #define RING_SIZE 100
 #define HASH_SIZE 224
 
-pairing_t pairing;
-
-element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
-
 typedef struct {
   element_t public_key, public_id;
 } Ring;
-
-Ring ring[RING_SIZE];
 
 typedef struct {
   element_t secret_key, public_key;
@@ -29,7 +23,10 @@ typedef struct {
   element_t g1, g2, g3;
 } Pairing_param;
 
-Pairing_param *pp;
+extern pairing_t pairing;
+extern element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
+extern Ring ring[RING_SIZE];
+extern Pairing_param *pp;
 
 void pairing_init();
 

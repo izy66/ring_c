@@ -1,6 +1,11 @@
 #include "ring.h"
 #include "time.h"
 
+pairing_t pairing;
+element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
+Ring ring[RING_SIZE];
+Pairing_param *pp;
+
 int main() {
   // FILE *f = freopen("out", "w", stdout);
 
