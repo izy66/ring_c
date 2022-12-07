@@ -10,7 +10,7 @@ void schnorr_proof(ZKP *proof, element_t r, element_t a) {
   // challenge
   element_hash_GT(tmp_r2, proof->t); 
   // response
-  element_mul_zn(tmp_r2, r, tmp_r2); 
+  element_mul(tmp_r2, r, tmp_r2); 
   element_add(proof->z, tmp_r, tmp_r2);
 }
 
