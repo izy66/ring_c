@@ -70,9 +70,12 @@ int trace_verify(Signature *signature) {
 
   element_div(tmp_t, signature->trace, signature->signer_PID);
 
-  int ret = schnorr_verify(signature->trace_pf1, signature->pid_enc->cipher->c1, tmp_t);
+  if (!schnorr_verify(signature->trace_pf1, signature->pid_enc->cipher->c1, tmp_t)) {
+    puts("decryption proof failed!");
+    return 0;
+  }
   
   element_clear(tmp_t);
-
-  return ret;
+  
+  return 1;
 }

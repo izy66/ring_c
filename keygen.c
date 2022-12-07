@@ -1,23 +1,39 @@
 #include "ring.h"
 
-void pairing_init() {
+void pairing_var_init() {
   pp = malloc(sizeof(Pairing_param));
-  element_init_Zr(tmp_r, pairing);
-  element_init_Zr(tmp_r2, pairing);
-  element_init_GT(tmp_t, pairing);
-  element_init_GT(tmp_t2, pairing);
   element_init_G1(pp->g1, pairing);
   element_init_G2(pp->g2, pairing);
   element_init_GT(pp->g3, pairing);
   element_random(pp->g1);
   element_random(pp->g2);
   pairing_apply(pp->g3, pp->g1, pp->g2, pairing);
+  element_init_Zr(tmp_r, pairing);
+  element_init_Zr(tmp_r2, pairing);
+  element_init_GT(tmp_t, pairing);
+  element_init_GT(tmp_t2, pairing);
   for (int i = 0; i < RING_SIZE; ++i) {
     element_init_G1(ring[i].public_key, pairing);
     element_init_GT(ring[i].public_id, pairing);
     element_random(tmp_r);
     element_pow_zn(ring[i].public_key, pp->g1, tmp_r);
     element_pow_zn(ring[i].public_id, pp->g3, tmp_r);
+  }
+}
+
+void pairing_var_clear() {
+  element_clear(pp->g1);
+  element_clear(pp->g2);
+  element_clear(pp->g3);
+  free(pp);
+  pairing_clear(pairing);
+  element_clear(tmp_r);
+  element_clear(tmp_r2);
+  element_clear(tmp_t);
+  element_clear(tmp_t2);
+  for (int i = 0; i < RING_SIZE; ++i) {
+    element_clear(ring[i].public_key);
+    element_clear(ring[i].public_id);
   }
 }
 
@@ -197,7 +213,4 @@ void PKE_key_clear(PKE_key_pair *key) {
 }
 
 void Pairing_param_clear(Pairing_param *pp) {
-  element_clear(pp->g1);
-  element_clear(pp->g2);
-  element_clear(pp->g3);
 }

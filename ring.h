@@ -28,7 +28,8 @@ extern element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
 extern Ring ring[RING_SIZE];
 extern Pairing_param *pp;
 
-void pairing_init();
+void pairing_var_init();
+void pairing_var_clear();
 
 typedef struct {
   element_t c1, c2;

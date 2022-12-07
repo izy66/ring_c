@@ -19,7 +19,7 @@ int main() {
   if (!count) pbc_die("input error");
 
   pairing_init_set_buf(pairing, param, count);
-  pairing_init();
+  pairing_var_init();
 
   PKE_key_pair *my_key = malloc(sizeof(PKE_key_pair));
   user_key_init(my_key);
@@ -43,32 +43,27 @@ int main() {
   timer = (float)clock()/CLOCKS_PER_SEC;
   signature_gen(signature, tracer_key->public_key, ring[my_index].public_id, my_key->secret_key, my_index, message);
   printf("signing time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
-
-  timer = (float)clock()/CLOCKS_PER_SEC;
+  
   if (signature_verify(signature, tracer_key->public_key, message)) {
-    puts("signature verified.");
+
+    printf("signature verification time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
+    
+    timer = (float)clock()/CLOCKS_PER_SEC;
+    report_signature(signature, my_index, my_key->secret_key);
+    trace_signature(signature, tracer_key->secret_key);
+    printf("report & trace time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
+
+    assert(!element_cmp(signature->signer_PID, ring[my_index].public_id));
+    assert(trace_verify(signature));
+    
   } else {
     puts("signature verification failed.");
   }
-  printf("signature verification time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
 
-  timer = (float)clock()/CLOCKS_PER_SEC;
-  report_signature(signature, my_index, my_key->secret_key);
-  trace_signature(signature, tracer_key->secret_key);
-  printf("report & trace time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
-
-  assert(!element_cmp(signature->signer_PID, ring[my_index].public_id));
-  assert(trace_verify(signature));
-  
   Signature_clear(signature);
-  for (int i = 0; i < RING_SIZE; ++i) {
-    element_clear(ring[i].public_id);
-    element_clear(ring[i].public_key);
-  }
   PKE_key_clear(tracer_key);
   PKE_key_clear(my_key);
-  Pairing_param_clear(pp);
-  pairing_clear(pairing);
+  pairing_var_clear();
   fclose(stream);
 }
 
