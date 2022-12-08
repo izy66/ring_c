@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define RING_SIZE 100
+#define RING_SIZE 2
 #define HASH_SIZE 224
 
 typedef struct {
@@ -24,7 +24,6 @@ typedef struct {
 } Pairing_param;
 
 extern pairing_t pairing;
-extern element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
 extern Ring ring[RING_SIZE];
 extern Pairing_param *pp;
 
@@ -81,7 +80,7 @@ typedef struct {
   Key_Enc_Prf *key_enc[RING_SIZE];
   PID_Enc_SoK *pid_enc;
   element_t signer_PID, trace;
-  ZKP *trace_pf1, *trace_pf2;
+  ZKP *trace_pf1;
 } Signature;
 
 void Signature_init(Signature *signature);
@@ -111,7 +110,6 @@ void sign_key_init(PKE_key_pair *key);
 void sign_key_gen(PKE_key_pair *key);
 
 void PKE_key_clear(PKE_key_pair *key);
-void Pairing_param_clear(Pairing_param *pp);
 
 void schnorr_proof(ZKP *proof, element_t r, element_t a);
 

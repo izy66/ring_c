@@ -25,13 +25,17 @@ int main() {
   user_key_init(my_key);
   user_key_gen(my_key);
 
-  srand(time(NULL));
+  //srand(time(NULL));
   int my_index = rand() % RING_SIZE;
 
   element_set(ring[my_index].public_key, my_key->public_key);
   element_pow_zn(ring[my_index].public_id, pp->g3, my_key->secret_key);
 
   unsigned char message[] = "YELLOW SUBMARINE";
+  element_t h;
+  element_init_Zr(h, pairing); 
+  element_hash_Str(h, message); 
+  element_clear(h);
 
   PKE_key_pair *tracer_key = malloc(sizeof(PKE_key_pair));
   tracer_key_init(tracer_key);
@@ -43,7 +47,7 @@ int main() {
   timer = (float)clock()/CLOCKS_PER_SEC;
   signature_gen(signature, tracer_key->public_key, ring[my_index].public_id, my_key->secret_key, my_index, message);
   printf("signing time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
-  
+
   if (signature_verify(signature, tracer_key->public_key, message)) {
 
     printf("signature verification time: %.3f s\n", (float)clock()/CLOCKS_PER_SEC - timer);
@@ -61,9 +65,14 @@ int main() {
   }
 
   Signature_clear(signature);
+  free(signature);
   PKE_key_clear(tracer_key);
+  free(tracer_key);
   PKE_key_clear(my_key);
+  free(my_key);
   pairing_var_clear();
   fclose(stream);
+
+  return 0;
 }
 

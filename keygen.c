@@ -8,10 +8,8 @@ void pairing_var_init() {
   element_random(pp->g1);
   element_random(pp->g2);
   pairing_apply(pp->g3, pp->g1, pp->g2, pairing);
+  element_t tmp_r;
   element_init_Zr(tmp_r, pairing);
-  element_init_Zr(tmp_r2, pairing);
-  element_init_GT(tmp_t, pairing);
-  element_init_GT(tmp_t2, pairing);
   for (int i = 0; i < RING_SIZE; ++i) {
     element_init_G1(ring[i].public_key, pairing);
     element_init_GT(ring[i].public_id, pairing);
@@ -19,6 +17,7 @@ void pairing_var_init() {
     element_pow_zn(ring[i].public_key, pp->g1, tmp_r);
     element_pow_zn(ring[i].public_id, pp->g3, tmp_r);
   }
+  element_clear(tmp_r);
 }
 
 void pairing_var_clear() {
@@ -26,15 +25,11 @@ void pairing_var_clear() {
   element_clear(pp->g2);
   element_clear(pp->g3);
   free(pp);
-  pairing_clear(pairing);
-  element_clear(tmp_r);
-  element_clear(tmp_r2);
-  element_clear(tmp_t);
-  element_clear(tmp_t2);
   for (int i = 0; i < RING_SIZE; ++i) {
     element_clear(ring[i].public_key);
     element_clear(ring[i].public_id);
   }
+  pairing_clear(pairing);
 }
 
 void Sign_Cipher_init(Sign_Cipher *cipher) {
@@ -81,8 +76,7 @@ void Key_Enc_init(Key_Enc_Prf *key_enc) {
 }
 
 void Key_Enc_clear(Key_Enc_Prf *key_enc) {
-  element_clear(key_enc->cipher->c1);
-  element_clear(key_enc->cipher->c2);
+  Sign_Cipher_clear(key_enc->cipher);
   ZKP_clear(key_enc->pf1);
   ZKP_clear(key_enc->pf2);
   free(key_enc->cipher);
@@ -112,8 +106,8 @@ void SoK_clear(SoK *sok) {
 
 void PID_Enc_init(PID_Enc_SoK *pid_enc) {
   pid_enc->cipher = malloc(sizeof(PID_Cipher));
-  PID_Cipher_init(pid_enc->cipher);
   pid_enc->sok = malloc(sizeof(SoK));
+  PID_Cipher_init(pid_enc->cipher);
   SoK_init(pid_enc->sok);
 }
 
@@ -155,24 +149,27 @@ void Signature_clear(Signature *signature) {
 }
 
 void element_hash_GT(element_t h, element_t e) {
-  int n = pairing_length_in_bytes_GT(pairing);
-
-  unsigned char* data = malloc(n);
+  //element_printf("\nhashing element: %B\n", e);
+  int n = element_length_in_bytes(e);
+  unsigned char *data = malloc(n);
   element_to_bytes(data, e);
-
-  unsigned char* hash = malloc(HASH_SIZE);
-  crypto_generichash(hash, sizeof hash, data, n, NULL, 0);
-  element_from_hash(h, hash, HASH_SIZE);
-
+  element_hash_Str(h, data);
   free(data);
-  free(hash);
 }
 
 void element_hash_Str(element_t h, unsigned char *data) {
-  unsigned char* hash = malloc(HASH_SIZE);
-  crypto_generichash(hash, sizeof hash, data, sizeof data, NULL, 0);
-  element_from_hash(h, hash, HASH_SIZE);
-
+  unsigned char *hash = malloc(256);
+  //printf("input data:\n");
+  //for (int i = 0; i < strlen(data); ++i) printf("%02x", data[i]);
+  //puts("");
+  crypto_generichash(hash, HASH_SIZE, data, strlen(data), "YELLOW SUBMARINE", 16);
+  crypto_hash_sha256(hash, data, strlen(data));
+  element_from_hash(h, hash, strlen(hash));
+  //printf("hash data:\n");
+  //for (int i = 0; i < strlen(hash); ++i) printf("%02x", hash[i]);
+  //puts("");
+  //printf("hash size: %d\n", sizeof hash);
+  //element_printf("element data: %B\n", h);
   free(hash);
 }
 
@@ -202,9 +199,12 @@ void sign_key_init(PKE_key_pair *key) {
 }
 
 void sign_key_gen(PKE_key_pair *key) {
+  element_t tmp_r;
+  element_init_Zr(tmp_r, pairing);
   element_random(tmp_r);
   element_pow_zn(key->secret_key, pp->g1, tmp_r);
   element_pow_zn(key->public_key, pp->g3, tmp_r);
+  element_clear(tmp_r);
 }
 
 void PKE_key_clear(PKE_key_pair *key) {
@@ -212,5 +212,3 @@ void PKE_key_clear(PKE_key_pair *key) {
   element_clear(key->secret_key);
 }
 
-void Pairing_param_clear(Pairing_param *pp) {
-}

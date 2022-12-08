@@ -22,6 +22,8 @@ void trace_signature(Signature *signature, element_t tracer_sk) {
   // verify that signing key is a valid key pair
   // which only happens when one of the ring members have decrypted the secret key
 
+  element_t tmp_t;
+  element_init_GT(tmp_t, pairing);
   pairing_apply(tmp_t, signature->sign_key->secret_key, pp->g2, pairing);
 
   if (element_cmp(tmp_t, signature->sign_key->public_key)) {
@@ -39,6 +41,8 @@ void trace_signature(Signature *signature, element_t tracer_sk) {
   // prove correct decryption
 
   schnorr_proof(signature->trace_pf1, tracer_sk, signature->pid_enc->cipher->c1);
+
+  element_clear(tmp_t);
 }
 
 int trace_verify(Signature *signature) {

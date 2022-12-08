@@ -22,7 +22,14 @@ void signature_gen(Signature *signature, element_t tracer_public_key, element_t 
     element_mul(signature->key_enc[i]->cipher->c2, signature->key_enc[i]->cipher->c2, signature->sign_key->secret_key);
     // prove correct encryption
     schnorr_proof(signature->key_enc[i]->pf1, tmp_r, pp->g3);
+    pairing_apply(tmp_t, signature->key_enc[i]->cipher->c1, pp->g2, pairing);
+    element_pow_zn(tmp_t2, pp->g3, tmp_r);
+    assert(schnorr_verify(signature->key_enc[i]->pf1, pp->g3, tmp_t));
+
     schnorr_proof(signature->key_enc[i]->pf2, tmp_r, ring[i].public_id);
+    pairing_apply(tmp_t, signature->key_enc[i]->cipher->c2, pp->g2, pairing);
+    element_div(tmp_t, tmp_t, signature->sign_key->public_key);
+    assert(schnorr_verify(signature->key_enc[i]->pf2, ring[i].public_id, tmp_t));
   }
 
   // encrypt signer's id to tracer and generate a proof of correct encryption
@@ -70,15 +77,20 @@ int signature_verify(Signature *signature, element_t tracer_public_key, unsigned
 
     pairing_apply(tmp_t, signature->key_enc[i]->cipher->c1, pp->g2, pairing);
 
-    if (!schnorr_verify(signature->key_enc[i]->pf1, pp->g3, tmp_t))
+    if (!schnorr_verify(signature->key_enc[i]->pf1, pp->g3, tmp_t)) {
+      puts("key encryption proof 1 failed.");
       return 0;
+    }
 
     pairing_apply(tmp_t, signature->key_enc[i]->cipher->c2, pp->g2, pairing);
     element_div(tmp_t, tmp_t, signature->sign_key->public_key);
 
-    if (!schnorr_verify(signature->key_enc[i]->pf2, ring[i].public_id, tmp_t)) 
+    if (!schnorr_verify(signature->key_enc[i]->pf2, ring[i].public_id, tmp_t)) {
+			puts("key encryption proof 2 failed.");
       return 0;
+    }
   }
+
 
   element_clear(tmp_t);
 
@@ -99,8 +111,9 @@ void signature_of_knowledge_proof(SoK *sok, int signer_index, element_t user_sec
   element_init_Zr(challenge, pairing);
   element_hash_Str(challenge, message);
 
-  element_t tmp_r, tmp_t, tmp_t2;
+  element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
   element_init_Zr(tmp_r, pairing);
+  element_init_Zr(tmp_r2, pairing);
   element_init_GT(tmp_t, pairing);
   element_init_GT(tmp_t2, pairing);
   
@@ -109,8 +122,10 @@ void signature_of_knowledge_proof(SoK *sok, int signer_index, element_t user_sec
       element_random(tmp_r);
       element_to_mpz(sok->challenge[i], tmp_r);
       schnorr_sim_proof(sok->schnorr[i], pp->g3, ring[i].public_id, sok->challenge[i]);
+      assert(schnorr_sim_verify(sok->schnorr[i], pp->g3, ring[i].public_id, sok->challenge[i]));
       element_div(tmp_t, pid_cipher->c3, ring[i].public_id);
       okamoto_sim_proof(sok->okamoto[i], tracer_public_key, signature_public_key, tmp_t, sok->challenge[i]);
+      assert(okamoto_sim_verify(sok->okamoto[i], tracer_public_key, signature_public_key, tmp_t, sok->challenge[i]));
 
       mpz_xor(c_sum, c_sum, sok->challenge[i]);
       element_hash_GT(tmp_r, sok->schnorr[i]->t);
@@ -150,13 +165,20 @@ void signature_of_knowledge_proof(SoK *sok, int signer_index, element_t user_sec
 
   // response
 
-  element_set_mpz(tmp_r2, sok->challenge[signer_index]);
+//  gmp_printf("gmp element = %Zd\n", sok->challenge[signer_index]);
+  element_set_mpz(tmp_r2, sok->challenge[signer_index]);  
+//  element_printf("PBC element = %B\n", tmp_r2);
   element_mul(tmp_r, user_secret_key, tmp_r2);
   element_add(sok->schnorr[signer_index]->z, tmp_r, u0);
   element_mul(tmp_r, tmp_r2, r2);
   element_add(sok->okamoto[signer_index]->z, tmp_r, u0);
   element_mul(tmp_r, tmp_r2, r3);
   element_add(sok->okamoto[signer_index]->z2, tmp_r, u1);
+
+  for (int i = 0; i < RING_SIZE; ++i) {
+//    gmp_printf("challenge[%d] =  \n", sok->challenge[i]);
+    // sok->challenge[i];
+  }
 
   mpz_xor(sok->challenge[RING_SIZE-1], sok->challenge[RING_SIZE-1], sok->challenge[RING_SIZE-1]);
 
@@ -167,6 +189,7 @@ void signature_of_knowledge_proof(SoK *sok, int signer_index, element_t user_sec
   element_clear(u1);
 
   element_clear(tmp_r);
+  element_clear(tmp_r2);
   element_clear(tmp_t);
   element_clear(tmp_t2);
 }
@@ -181,9 +204,11 @@ int signature_of_knowledge_verify(SoK *sok, PID_Cipher *pid_cipher, element_t tr
   element_init_Zr(challenge, pairing);
   element_hash_Str(challenge, message);
 
-  element_t tmp_r, tmp_t;
+  element_t tmp_r, tmp_r2, tmp_t, tmp_t2;
   element_init_Zr(tmp_r, pairing);
+  element_init_Zr(tmp_r2, pairing);
   element_init_GT(tmp_t, pairing);
+  element_init_GT(tmp_t2, pairing);
   
   for (int i = 0; i < RING_SIZE; ++i) {
     element_hash_GT(tmp_r, sok->schnorr[i]->t);
@@ -200,6 +225,10 @@ int signature_of_knowledge_verify(SoK *sok, PID_Cipher *pid_cipher, element_t tr
 
   mpz_set(sok->challenge[RING_SIZE-1], c_sum);
 
+  for (int i = 0; i < RING_SIZE; ++i) {
+    // gmp_printf("challenge[%d] = %Zd\n", i, sok->challenge[i]);
+  }
+
   int ret = 1;
 
   for (int i = 0; i < RING_SIZE && ret; ++i) {
@@ -214,8 +243,13 @@ int signature_of_knowledge_verify(SoK *sok, PID_Cipher *pid_cipher, element_t tr
     }
   }
 
+  mpz_clear(c_sum);
+  mpz_clear(c_tmp);
   element_clear(tmp_r);
+  element_clear(tmp_r2);
   element_clear(tmp_t);
+  element_clear(tmp_t2);
+  element_clear(challenge);
 
   return ret;
 }
