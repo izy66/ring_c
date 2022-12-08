@@ -149,7 +149,6 @@ void Signature_clear(Signature *signature) {
 }
 
 void element_hash_GT(element_t h, element_t e) {
-  //element_printf("\nhashing element: %B\n", e);
   int n = element_length_in_bytes(e);
   unsigned char *data = malloc(n+1);
   data[n] = '\0';
@@ -161,16 +160,8 @@ void element_hash_GT(element_t h, element_t e) {
 void element_hash_Str(element_t h, unsigned char *data) {
   unsigned char *hash = malloc(256+1);
   hash[256] = '\0';
-  //printf("input data:\n");
-  //for (int i = 0; i < strlen(data); ++i) printf("%02x", data[i]);
-  //puts("");
   crypto_hash_sha256(hash, data, strlen((const char*)data)+1);
   element_from_hash(h, hash, 64);
-  //printf("hash data:\n");
-  //for (int i = 0; i < strlen(hash); ++i) printf("%02x", hash[i]);
-  //puts("");
-  //printf("hash size: %d\n", sizeof hash);
-  //element_printf("element data: %B\n", h);
   free(hash);
 }
 

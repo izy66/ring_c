@@ -165,20 +165,13 @@ void signature_of_knowledge_proof(SoK *sok, int signer_index, element_t user_sec
 
   // response
 
-//  gmp_printf("gmp element = %Zd\n", sok->challenge[signer_index]);
   element_set_mpz(tmp_r2, sok->challenge[signer_index]);  
-//  element_printf("PBC element = %B\n", tmp_r2);
   element_mul(tmp_r, user_secret_key, tmp_r2);
   element_add(sok->schnorr[signer_index]->z, tmp_r, u0);
   element_mul(tmp_r, tmp_r2, r2);
   element_add(sok->okamoto[signer_index]->z, tmp_r, u0);
   element_mul(tmp_r, tmp_r2, r3);
   element_add(sok->okamoto[signer_index]->z2, tmp_r, u1);
-
-  for (int i = 0; i < RING_SIZE; ++i) {
-//    gmp_printf("challenge[%d] =  \n", sok->challenge[i]);
-    // sok->challenge[i];
-  }
 
   mpz_xor(sok->challenge[RING_SIZE-1], sok->challenge[RING_SIZE-1], sok->challenge[RING_SIZE-1]);
 
@@ -224,10 +217,6 @@ int signature_of_knowledge_verify(SoK *sok, PID_Cipher *pid_cipher, element_t tr
   }
 
   mpz_set(sok->challenge[RING_SIZE-1], c_sum);
-
-  for (int i = 0; i < RING_SIZE; ++i) {
-    // gmp_printf("challenge[%d] = %Zd\n", i, sok->challenge[i]);
-  }
 
   int ret = 1;
 

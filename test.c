@@ -25,7 +25,7 @@ int main() {
   user_key_init(my_key);
   user_key_gen(my_key);
 
-  //srand(time(NULL));
+  srand(time(NULL));
   int my_index = rand() % RING_SIZE;
 
   element_set(ring[my_index].public_key, my_key->public_key);
